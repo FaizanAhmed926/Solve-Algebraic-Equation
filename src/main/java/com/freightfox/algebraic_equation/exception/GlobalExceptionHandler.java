@@ -12,7 +12,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Handle Invalid Input (e.g., Empty equation)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -21,7 +20,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    // 2. Handle Logical Errors (e.g., Variable missing, Division by zero)
     @ExceptionHandler({IllegalArgumentException.class, ArithmeticException.class})
     public ResponseEntity<Map<String, String>> handleLogicalErrors(RuntimeException ex) {
         Map<String, String> errorResponse = new HashMap<>();
@@ -29,7 +27,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // 3. Handle Generic Errors (Fallback)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericErrors(Exception ex) {
         Map<String, String> errorResponse = new HashMap<>();

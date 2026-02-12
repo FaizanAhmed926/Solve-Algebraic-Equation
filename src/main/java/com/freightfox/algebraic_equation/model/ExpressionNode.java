@@ -8,11 +8,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExpressionNode {
-    private String value;          // operator (+, -, *, /, ^) ya operand (number ya variable)
+    private String value;
     private ExpressionNode left;
     private ExpressionNode right;
 
-    // Constructor for leaf nodes (operands)
     public ExpressionNode(String value) {
         this.value = value;
         this.left = null;

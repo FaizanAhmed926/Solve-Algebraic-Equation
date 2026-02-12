@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Map;
 
 @Data
-@Builder // Builder pattern complex objects banane ke liye best hai
+@Builder
 public class EvaluationResult {
     private Long equationId;
     private String equation;

@@ -12,39 +12,30 @@ import java.util.regex.Pattern;
 @Service
 public class EquationService {
 
-    // In-memory DB simulation (HashMap)
     private final Map<Long, Equation> equationStore = new HashMap<>();
     private final AtomicLong idCounter = new AtomicLong(1);
 
-    // --- PUBLIC METHODS ---
 
-    // 1. Store Equation
     public Equation saveEquation(String equationStr) {
-        // Step 1: Sanitize (Remove spaces, handle implicit multiplication like 2x -> 2*x)
         String sanitized = sanitizeEquation(equationStr);
 
-        // Step 2: Convert Infix to Postfix (List of tokens)
         List<String> postfix = infixToPostfix(sanitized);
 
-        // Step 3: Build Expression Tree from Postfix
         ExpressionNode root = buildTree(postfix);
 
-        // Step 4: Save to Memory
         Equation equation = new Equation();
         equation.setId(idCounter.getAndIncrement());
-        equation.setInfix(equationStr); // Store original for display
+        equation.setInfix(equationStr);
         equation.setRoot(root);
 
         equationStore.put(equation.getId(), equation);
         return equation;
     }
 
-    // 2. Retrieve All
     public List<Equation> getAllEquations() {
         return new ArrayList<>(equationStore.values());
     }
 
-    // 3. Evaluate Equation
     public double evaluateEquation(Long id, Map<String, Double> variableValues) {
         Equation equation = equationStore.get(id);
         if (equation == null) {
@@ -53,9 +44,7 @@ public class EquationService {
         return evaluateNode(equation.getRoot(), variableValues);
     }
 
-    // --- PRIVATE HELPER LOGIC (The "Brain") ---
 
-    // Recursive Evaluation Logic
     private double evaluateNode(ExpressionNode node, Map<String, Double> vars) {
         if (node == null) return 0;
 
@@ -74,7 +63,6 @@ public class EquationService {
             }
         }
 
-        // Operator Node
         double leftVal = evaluateNode(node.getLeft(), vars);
         double rightVal = evaluateNode(node.getRight(), vars);
 
@@ -90,20 +78,17 @@ public class EquationService {
         }
     }
 
-    // Tree Construction from Postfix (Stack based)
     private ExpressionNode buildTree(List<String> postfix) {
         Stack<ExpressionNode> stack = new Stack<>();
 
         for (String token : postfix) {
             if (isOperator(token)) {
                 ExpressionNode node = new ExpressionNode(token);
-                // Pop right first, then left (Stack LIFO)
                 if (stack.size() < 2) throw new IllegalArgumentException("Invalid Equation Syntax");
                 node.setRight(stack.pop());
                 node.setLeft(stack.pop());
                 stack.push(node);
             } else {
-                // Operand
                 stack.push(new ExpressionNode(token));
             }
         }
@@ -115,7 +100,6 @@ public class EquationService {
         List<String> output = new ArrayList<>();
         Stack<String> operators = new Stack<>();
 
-        // Tokenizer Regex: Matches numbers (inc decimal), words (vars), or operators
         Matcher m = Pattern.compile("[a-zA-Z]+|\\d+(\\.\\d+)?|[+\\-*/^()]").matcher(infix);
 
         while (m.find()) {
@@ -129,7 +113,7 @@ public class EquationService {
                 while (!operators.isEmpty() && !operators.peek().equals("(")) {
                     output.add(operators.pop());
                 }
-                operators.pop(); // Remove "("
+                operators.pop();
             } else if (isOperator(token)) {
                 while (!operators.isEmpty() && precedence(operators.peek()) >= precedence(token)) {
                     output.add(operators.pop());
@@ -144,13 +128,11 @@ public class EquationService {
         return output;
     }
 
-    // Helper: Implicit Multiplication & Cleanup
     private String sanitizeEquation(String eq) {
         eq = eq.replace(" ", ""); // Remove spaces
-        // Regex to add * between number and variable (e.g., 3x -> 3*x)
-        // Lookbehind digit, Lookahead letter
+
         eq = eq.replaceAll("(?<=\\d)(?=[a-zA-Z(])", "*");
-        // Lookbehind ) and Lookahead digit/letter (e.g., (a+b)2 -> (a+b)*2)
+
         eq = eq.replaceAll("(?<=\\))(?=[\\d(a-zA-Z])", "*");
         return eq;
     }
